@@ -39,16 +39,16 @@ namespace WYSIWYGProject
         {
             if (typeText != null)
             {
-                Console.WriteLine("DESELECTING");
                 Keyboard.ClearFocus();
             }
         }
 
         private void Draw(string type)
         {
+            CheckCollision();
             Shape shape = null;
             var shapeGrid = new Grid();
-            
+
             typeText = new TextBox
             {
                 Text = type,
@@ -91,6 +91,8 @@ namespace WYSIWYGProject
             Canvas.SetLeft(shapeGrid, mousePosition.X);
             Canvas.SetTop(shapeGrid, mousePosition.Y);
             shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
+            shapeGrid.MouseMove += new MouseEventHandler(MouseMoveGrid);
+            shapeGrid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
 
             FlowChart.Children.Add(shapeGrid);
         }
@@ -100,34 +102,67 @@ namespace WYSIWYGProject
             mousePosition = Mouse.GetPosition(FlowChart);
         }
 
+        bool captured = false;
+        double x_shape, x_canvas, y_shape, y_canvas;
+        UIElement source = null;
+
         private void MoveGrid(object sender, RoutedEventArgs e)
         {
-            FrameworkElement element = sender as Grid;
-            TranslateTransform translate = element.RenderTransform as TranslateTransform;
-            Console.WriteLine("Dragging");
-           // m_start = e.GetPosition(Main);
-            m_startOffset = new Vector(translate.X, translate.Y);
-            element.CaptureMouse();
+            source = (UIElement)sender;
+            Mouse.Capture(source);
+            captured = true;
+            x_shape = Canvas.GetLeft(source);
+            x_canvas = Mouse.GetPosition(FlowChart).X;
+            y_shape = Canvas.GetTop(source);
+            y_canvas = Mouse.GetPosition(FlowChart).Y;
         }
 
-        private void Grid_MouseMove(object sender, MouseEventArgs e)
+        private void MouseMoveGrid(object sender, MouseEventArgs e)
         {
-            FrameworkElement element = sender as Grid;
-            TranslateTransform translate = element.RenderTransform as TranslateTransform;
-
-            if (element.IsMouseCaptured)
+            if (captured)
             {
-                Vector offset = Point.Subtract(e.GetPosition(FlowChart), m_start);
-
-                translate.X = m_startOffset.X + offset.X;
-                translate.Y = m_startOffset.Y + offset.Y;
+                double x = e.GetPosition(FlowChart).X;
+                double y = e.GetPosition(FlowChart).Y;
+                x_shape += x - x_canvas;
+                Canvas.SetLeft(source, x_shape);
+                x_canvas = x;
+                y_shape += y - y_canvas;
+                Canvas.SetTop(source, y_shape);
+                y_canvas = y;
             }
         }
 
-        private void Grid_MouseUp(object sender, MouseButtonEventArgs e)
+        private void MouseUpGrid(object sender, MouseButtonEventArgs e)
         {
-            FrameworkElement element = sender as Grid;
-            element.ReleaseMouseCapture();
+            Mouse.Capture(null);
+            captured = false;
+        }
+
+        private bool CheckCollision()
+        {
+            //plainCanvas.Children ger alla element som ligger i den layouten och spara i en lista.
+            UIElementCollection uiColl = FlowChart.Children;
+
+            double xCoord, yCoord, xWidth, yHeight;
+            Shape shape;
+
+            //en loop igenom alla shapes för att se om musklicket gjordes på någon av dem.
+            foreach (Grid shapeGrid in uiColl)
+            {
+                shape = (Shape) shapeGrid.Children[0];
+                xCoord = Canvas.GetLeft(shape);
+                yCoord = Canvas.GetTop(shape);
+
+                xWidth = shape.Width;
+                yHeight = shape.Height;
+
+                //Detta är ett klassiskt sätt att kolla kollision på, ni kan lösa det med snyggare metoder som t.ex. nämns i boken. 
+                if (xCoord < mousePosition.X && mousePosition.X < (xCoord + xWidth) && yCoord < mousePosition.Y && mousePosition.Y < (yCoord + yHeight))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
