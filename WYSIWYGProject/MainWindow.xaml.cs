@@ -21,6 +21,10 @@ namespace WYSIWYGProject
     public partial class MainWindow : Window
     {
         public Point mousePosition;
+        private TextBox typeText;
+        Point m_start;
+        Vector m_startOffset;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -31,10 +35,29 @@ namespace WYSIWYGProject
             Draw(((MenuItem)sender).Name);
         }
 
+        private void CanvasClicked(object sender, RoutedEventArgs e)
+        {
+            if (typeText != null)
+            {
+                Console.WriteLine("DESELECTING");
+                Keyboard.ClearFocus();
+            }
+        }
+
         private void Draw(string type)
         {
-            Console.WriteLine("Name: " + type);
             Shape shape = null;
+            var shapeGrid = new Grid();
+            
+            typeText = new TextBox
+            {
+                Text = type,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Background = new SolidColorBrush { Opacity = 0 },
+                BorderThickness = new Thickness(0)
+            };
+
             switch (type)
             {
                 case "Process":
@@ -47,6 +70,8 @@ namespace WYSIWYGProject
                     shape = new Rectangle();
                     RotateTransform rotateTransform = new RotateTransform(-45);
                     shape.RenderTransform = rotateTransform;
+                    typeText.HorizontalAlignment = HorizontalAlignment.Right;
+                    typeText.Margin = new Thickness(0, 0, 0, 75);
                     shape.Width = 75;
                     shape.Height = 75;
                     shape.Fill = new SolidColorBrush(Colors.LimeGreen);
@@ -60,19 +85,49 @@ namespace WYSIWYGProject
             }
             shape.Stroke = new SolidColorBrush(Colors.DarkMagenta);
 
-            var grid = new Grid();
-            grid.Children.Add(shape);
-            grid.Children.Add(new TextBlock { Text = "SHAPE", HorizontalAlignment=HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center  });
+            shapeGrid.Children.Add(shape);
+            shapeGrid.Children.Add(typeText);
 
-            Canvas.SetLeft(grid, mousePosition.X);
-            Canvas.SetTop(grid, mousePosition.Y);
+            Canvas.SetLeft(shapeGrid, mousePosition.X);
+            Canvas.SetTop(shapeGrid, mousePosition.Y);
+            shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
 
-            FlowChart.Children.Add(grid);
+            FlowChart.Children.Add(shapeGrid);
         }
 
         private void SaveMousePosition(object sender, RoutedEventArgs e)
         {
             mousePosition = Mouse.GetPosition(FlowChart);
+        }
+
+        private void MoveGrid(object sender, RoutedEventArgs e)
+        {
+            FrameworkElement element = sender as Grid;
+            TranslateTransform translate = element.RenderTransform as TranslateTransform;
+            Console.WriteLine("Dragging");
+           // m_start = e.GetPosition(Main);
+            m_startOffset = new Vector(translate.X, translate.Y);
+            element.CaptureMouse();
+        }
+
+        private void Grid_MouseMove(object sender, MouseEventArgs e)
+        {
+            FrameworkElement element = sender as Grid;
+            TranslateTransform translate = element.RenderTransform as TranslateTransform;
+
+            if (element.IsMouseCaptured)
+            {
+                Vector offset = Point.Subtract(e.GetPosition(FlowChart), m_start);
+
+                translate.X = m_startOffset.X + offset.X;
+                translate.Y = m_startOffset.Y + offset.Y;
+            }
+        }
+
+        private void Grid_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            FrameworkElement element = sender as Grid;
+            element.ReleaseMouseCapture();
         }
     }
 }

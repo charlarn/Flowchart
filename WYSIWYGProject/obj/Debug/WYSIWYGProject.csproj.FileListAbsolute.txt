@@ -12,3 +12,17 @@ C:\Users\Charlie\Source\Repos\Demo1\WYSIWYGProject\WYSIWYGProject\obj\Debug\WYSI
 C:\Users\Charlie\Source\Repos\Demo1\WYSIWYGProject\WYSIWYGProject\obj\Debug\WYSIWYGProject.csproj.GenerateResource.Cache
 C:\Users\Charlie\Source\Repos\Demo1\WYSIWYGProject\WYSIWYGProject\obj\Debug\WYSIWYGProject.exe
 C:\Users\Charlie\Source\Repos\Demo1\WYSIWYGProject\WYSIWYGProject\obj\Debug\WYSIWYGProject.pdb
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\bin\Debug\WYSIWYGProject.exe.config
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.exe
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.pdb
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\bin\Debug\WYSIWYGProject.exe
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\bin\Debug\WYSIWYGProject.pdb
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.csprojResolveAssemblyReference.cache
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\MainWindow.g.cs
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\App.g.cs
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject_MarkupCompile.cache
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject_MarkupCompile.lref
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\MainWindow.baml
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.g.resources
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.Properties.Resources.resources
+C:\Users\Charlie\Documents\GitHub\Flowchart\WYSIWYGProject\obj\Debug\WYSIWYGProject.csproj.GenerateResource.Cache
