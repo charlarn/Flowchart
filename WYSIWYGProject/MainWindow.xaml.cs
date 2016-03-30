@@ -21,8 +21,9 @@ namespace WYSIWYGProject
     public partial class MainWindow : Window
     {
         public Point mousePosition;
-        private TextBox typeText;
-        Shape newShape = null;
+        List<bool> list = new List<bool>();
+        private Grid startShape = null, endShape = null;
+        private List<ShapeGrid> gridCollection = new List<ShapeGrid>();
 
         public MainWindow()
         {
@@ -36,65 +37,38 @@ namespace WYSIWYGProject
 
         private void CanvasClicked(object sender, RoutedEventArgs e)
         {
-            if (typeText != null)
-            {
                 Keyboard.ClearFocus();
-            }
+          //  startShape = null;
+          //  endShape = null;
         }
 
         private void Draw(string type)
         {
-            CheckCollision();
- 
-            var shapeGrid = new Grid();
+            var shapeGrid = new ShapeGrid(type, mousePosition.X, mousePosition.Y);
+            gridCollection.Add(shapeGrid);
 
-            typeText = new TextBox
+            shapeGrid.Grid.MouseDown += new MouseButtonEventHandler(MoveGrid);
+            shapeGrid.Grid.MouseMove += new MouseEventHandler(MouseMoveGrid);
+            shapeGrid.Grid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
+            shapeGrid.Grid.ContextMenu = ShapeContextMenu();
+
+            FlowChart.Children.Add(shapeGrid.Grid);
+        }
+
+        private void Connect(ShapeGrid start, ShapeGrid end)
+        {
+            Line line = new Line
             {
-                Text = type,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Background = new SolidColorBrush { Opacity = 0 },
-                BorderThickness = new Thickness(0)
+                X1 = start.RightAnchor.X,
+                Y1 = start.RightAnchor.Y,
+                X2 = end.RightAnchor.X,
+                Y2 = end.RightAnchor.Y,
+                Stroke = Brushes.Black,
+                StrokeThickness = 2
             };
-
-            switch (type)
-            {
-                case "Process":
-                    newShape = new Rectangle();
-                    newShape.Width = 100;
-                    newShape.Height = 75;
-                    newShape.Fill = new SolidColorBrush(Colors.Crimson);
-                    break;
-                case "Decision":
-                    newShape = new Rectangle();
-                    RotateTransform rotateTransform = new RotateTransform(-45);
-                    newShape.RenderTransform = rotateTransform;
-                    typeText.HorizontalAlignment = HorizontalAlignment.Right;
-                    typeText.Margin = new Thickness(0, 0, 0, 75);
-                    newShape.Width = 75;
-                    newShape.Height = 75;
-                    newShape.Fill = new SolidColorBrush(Colors.LimeGreen);
-                    break;
-                case "Connector":
-                    newShape = new Ellipse();
-                    newShape.Width = 75;
-                    newShape.Height = 75;
-                    newShape.Fill = new SolidColorBrush(Colors.DeepSkyBlue);
-                    break;
-            }
-            newShape.Stroke = new SolidColorBrush(Colors.DarkMagenta);
-
-            shapeGrid.Children.Add(newShape);
-            shapeGrid.Children.Add(typeText);
-
-            Canvas.SetLeft(shapeGrid, mousePosition.X);
-            Canvas.SetTop(shapeGrid, mousePosition.Y);
-            shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
-            shapeGrid.MouseMove += new MouseEventHandler(MouseMoveGrid);
-            shapeGrid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
-            shapeGrid.ContextMenu = ShapeContextMenu();
-
-            FlowChart.Children.Add(shapeGrid);
+            FlowChart.Children.Add(line);
+            startShape = null;
+            endShape = null;
         }
 
         private ContextMenu ShapeContextMenu()
@@ -102,50 +76,56 @@ namespace WYSIWYGProject
             ContextMenu shapeMenu = new ContextMenu();
 
             shapeMenu.Items.Add(new MenuItem { Header = "Connector" });
-            ((MenuItem)shapeMenu.Items[0]).MouseLeftButtonDown += new MouseButtonEventHandler(DrawConnector);
+            ((MenuItem)shapeMenu.Items[0]).Click += new RoutedEventHandler(DrawConnector);
 
             MenuItem colourMenu = new MenuItem
             {
                 Header = "Colour",
                 Items = {
-                    new MenuItem { Header = "Red" },
-                    new MenuItem { Header = "Blue" },
-                    new MenuItem { Header = "Red again" }
+                    new MenuItem { Header = "Cornsilk" },
+                    new MenuItem { Header = "Honeydew" },
+                    new MenuItem { Header = "MistyRose" }
                 }
             };
-            MenuItem my = new MenuItem { Header = "Thread" };
-            my.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeColour);
-            colourMenu.Items.Add(my);
-            //foreach (MenuItem item in colourMenu.Items)
-            //{
-            //    item.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeColour);
-            //}
+            foreach (MenuItem item in colourMenu.Items)
+            {
+                item.Click += new RoutedEventHandler(ShapeColour);
+            }
             shapeMenu.Items.Add(colourMenu);
 
             return shapeMenu;
         }
 
-        private void ShapeColour(object sender, MouseEventArgs e)
+        private void ShapeColour(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Running" );
+            //bad line
+            Shape shape = (Shape) ((((ContextMenu)(((MenuItem)(((MenuItem)sender).Parent)).Parent)).PlacementTarget as Grid).Children[0]);
+
             switch (((MenuItem) sender).Header.ToString())
             {
-                case "Red":
-                    MessageBox.Show("Colouring");
-                    newShape.Fill = Brushes.Cornsilk;
+                case "Cornsilk":
+                    shape.Fill = Brushes.Cornsilk;
                     break;
-                case "Blue":
-                    newShape.Fill = Brushes.Honeydew;
+                case "Honeydew":
+                    shape.Fill = Brushes.Honeydew;
                     break;
-                case "Red again":
-                    newShape.Fill = Brushes.Indigo;
+                case "MistyRose":
+                    shape.Fill = Brushes.MistyRose;
                     break;
             } 
         }
 
-        private void DrawConnector(object sender, MouseButtonEventArgs e)
+        private void DrawConnector(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Connecting");
+            if(startShape == null)
+            {
+                startShape = ((ContextMenu) ((MenuItem) sender).Parent).PlacementTarget as Grid;
+            }
+            else
+            {
+                endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as Grid;
+                Connect(GetGrid(startShape), GetGrid(endShape));
+            }
         }
 
         private void SaveMousePosition(object sender, RoutedEventArgs e)
@@ -156,6 +136,41 @@ namespace WYSIWYGProject
         bool captured = false;
         double x_shape, x_canvas, y_shape, y_canvas;
         UIElement source = null;
+
+        private void ButtonDrawLine_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private ShapeGrid GetGrid(Grid grid)
+        {
+            foreach (ShapeGrid shapeGrid in gridCollection)
+            {
+                if (shapeGrid.Grid == grid)
+                    return shapeGrid;
+            }
+            return null;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            UIElementCollection uie = FlowChart.Children;
+            try
+            {
+                foreach (Grid grid in uie)
+
+                {
+                    RotateTransform rotateTransform = new RotateTransform(0);
+                    ((Shape)grid.Children[0]).RenderTransformOrigin = new Point(0.5, 0.5);
+                    ((Shape)grid.Children[0]).RenderTransform = rotateTransform;
+                }
+            }
+
+            catch (Exception err)
+            {
+
+            }
+            }
 
         private void MoveGrid(object sender, RoutedEventArgs e)
         {
@@ -189,16 +204,15 @@ namespace WYSIWYGProject
             captured = false;
         }
 
-        private bool CheckCollision()
+        private Grid CheckCollision()
         {
-            //plainCanvas.Children ger alla element som ligger i den layouten och spara i en lista.
-            UIElementCollection uiColl = FlowChart.Children;
+            UIElementCollection shapeGrids = FlowChart.Children;
 
             double xCoord, yCoord, xWidth, yHeight;
             Shape shape;
 
             //en loop igenom alla shapes för att se om musklicket gjordes på någon av dem.
-            foreach (Grid shapeGrid in uiColl)
+            foreach (Grid shapeGrid in shapeGrids)
             {
                 shape = (Shape)shapeGrid.Children[0];
                 xCoord = Canvas.GetLeft(shape);
@@ -210,10 +224,10 @@ namespace WYSIWYGProject
                 //Detta är ett klassiskt sätt att kolla kollision på, ni kan lösa det med snyggare metoder som t.ex. nämns i boken. 
                 if (xCoord < mousePosition.X && mousePosition.X < (xCoord + xWidth) && yCoord < mousePosition.Y && mousePosition.Y < (yCoord + yHeight))
                 {
-                    return true;
+                    return shapeGrid;
                 }
             }
-            return false;
+            return null;
         }
     }
 }

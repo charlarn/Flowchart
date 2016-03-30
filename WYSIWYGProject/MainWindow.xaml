@@ -7,6 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1000">
     <Grid Name="MainGrid">
+        <StackPanel Orientation="Horizontal" Height="50" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,75,0,0">
+            <Button>Colour</Button>
+            <Button>Line</Button>
+            <Button>Edit</Button>
+            <Button Click="Button_Click">Rotate</Button>
+            <Button Name="ButtonDrawLine" Click="ButtonDrawLine_Click">Draw line</Button>
+        </StackPanel>
         <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseDown="CanvasClicked">
             <Canvas.Background>
                 <ImageBrush ImageSource="Images/cache_800_800_0__100_Patterns_Template_1-1.png"/>
