@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WYSIWYGProject"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1000">
-    <Grid Name="Main">
+    <Grid Name="MainGrid">
         <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseDown="CanvasClicked">
             <Canvas.Background>
                 <ImageBrush ImageSource="Images/cache_800_800_0__100_Patterns_Template_1-1.png"/>
