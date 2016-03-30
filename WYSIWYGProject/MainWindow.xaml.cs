@@ -22,8 +22,7 @@ namespace WYSIWYGProject
     {
         public Point mousePosition;
         private TextBox typeText;
-        Point m_start;
-        Vector m_startOffset;
+        Shape newShape = null;
 
         public MainWindow()
         {
@@ -46,7 +45,7 @@ namespace WYSIWYGProject
         private void Draw(string type)
         {
             CheckCollision();
-            Shape shape = null;
+ 
             var shapeGrid = new Grid();
 
             typeText = new TextBox
@@ -61,31 +60,31 @@ namespace WYSIWYGProject
             switch (type)
             {
                 case "Process":
-                    shape = new Rectangle();
-                    shape.Width = 100;
-                    shape.Height = 75;
-                    shape.Fill = new SolidColorBrush(Colors.Crimson);
+                    newShape = new Rectangle();
+                    newShape.Width = 100;
+                    newShape.Height = 75;
+                    newShape.Fill = new SolidColorBrush(Colors.Crimson);
                     break;
                 case "Decision":
-                    shape = new Rectangle();
+                    newShape = new Rectangle();
                     RotateTransform rotateTransform = new RotateTransform(-45);
-                    shape.RenderTransform = rotateTransform;
+                    newShape.RenderTransform = rotateTransform;
                     typeText.HorizontalAlignment = HorizontalAlignment.Right;
                     typeText.Margin = new Thickness(0, 0, 0, 75);
-                    shape.Width = 75;
-                    shape.Height = 75;
-                    shape.Fill = new SolidColorBrush(Colors.LimeGreen);
+                    newShape.Width = 75;
+                    newShape.Height = 75;
+                    newShape.Fill = new SolidColorBrush(Colors.LimeGreen);
                     break;
                 case "Connector":
-                    shape = new Ellipse();
-                    shape.Width = 75;
-                    shape.Height = 75;
-                    shape.Fill = new SolidColorBrush(Colors.DeepSkyBlue);
+                    newShape = new Ellipse();
+                    newShape.Width = 75;
+                    newShape.Height = 75;
+                    newShape.Fill = new SolidColorBrush(Colors.DeepSkyBlue);
                     break;
             }
-            shape.Stroke = new SolidColorBrush(Colors.DarkMagenta);
+            newShape.Stroke = new SolidColorBrush(Colors.DarkMagenta);
 
-            shapeGrid.Children.Add(shape);
+            shapeGrid.Children.Add(newShape);
             shapeGrid.Children.Add(typeText);
 
             Canvas.SetLeft(shapeGrid, mousePosition.X);
@@ -93,8 +92,60 @@ namespace WYSIWYGProject
             shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
             shapeGrid.MouseMove += new MouseEventHandler(MouseMoveGrid);
             shapeGrid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
+            shapeGrid.ContextMenu = ShapeContextMenu();
 
             FlowChart.Children.Add(shapeGrid);
+        }
+
+        private ContextMenu ShapeContextMenu()
+        {
+            ContextMenu shapeMenu = new ContextMenu();
+
+            shapeMenu.Items.Add(new MenuItem { Header = "Connector" });
+            ((MenuItem)shapeMenu.Items[0]).MouseLeftButtonDown += new MouseButtonEventHandler(DrawConnector);
+
+            MenuItem colourMenu = new MenuItem
+            {
+                Header = "Colour",
+                Items = {
+                    new MenuItem { Header = "Red" },
+                    new MenuItem { Header = "Blue" },
+                    new MenuItem { Header = "Red again" }
+                }
+            };
+            MenuItem my = new MenuItem { Header = "Thread" };
+            my.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeColour);
+            colourMenu.Items.Add(my);
+            //foreach (MenuItem item in colourMenu.Items)
+            //{
+            //    item.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeColour);
+            //}
+            shapeMenu.Items.Add(colourMenu);
+
+            return shapeMenu;
+        }
+
+        private void ShapeColour(object sender, MouseEventArgs e)
+        {
+            MessageBox.Show("Running" );
+            switch (((MenuItem) sender).Header.ToString())
+            {
+                case "Red":
+                    MessageBox.Show("Colouring");
+                    newShape.Fill = Brushes.Cornsilk;
+                    break;
+                case "Blue":
+                    newShape.Fill = Brushes.Honeydew;
+                    break;
+                case "Red again":
+                    newShape.Fill = Brushes.Indigo;
+                    break;
+            } 
+        }
+
+        private void DrawConnector(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Connecting");
         }
 
         private void SaveMousePosition(object sender, RoutedEventArgs e)
@@ -149,7 +200,7 @@ namespace WYSIWYGProject
             //en loop igenom alla shapes för att se om musklicket gjordes på någon av dem.
             foreach (Grid shapeGrid in uiColl)
             {
-                shape = (Shape) shapeGrid.Children[0];
+                shape = (Shape)shapeGrid.Children[0];
                 xCoord = Canvas.GetLeft(shape);
                 yCoord = Canvas.GetTop(shape);
 
