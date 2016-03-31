@@ -22,8 +22,8 @@ namespace WYSIWYGProject
     {
         public Point mousePosition;
         List<bool> list = new List<bool>();
-        private Grid startShape = null, endShape = null;
-        private List<ShapeGrid> gridCollection = new List<ShapeGrid>();
+        private GridShape startShape = null, endShape = null;
+        private List<GridShape> gridCollection = new List<GridShape>();
 
         public MainWindow()
         {
@@ -37,36 +37,38 @@ namespace WYSIWYGProject
 
         private void CanvasClicked(object sender, RoutedEventArgs e)
         {
-                Keyboard.ClearFocus();
-          //  startShape = null;
-          //  endShape = null;
+            Keyboard.ClearFocus();
+            //  startShape = null;
+            //  endShape = null;
         }
 
         private void Draw(string type)
         {
-            var shapeGrid = new ShapeGrid(type, mousePosition.X, mousePosition.Y);
+            var shapeGrid = new GridShape((ShapeType)Enum.Parse(typeof(ShapeType), type), mousePosition.X, mousePosition.Y);
             gridCollection.Add(shapeGrid);
 
-            shapeGrid.Grid.MouseDown += new MouseButtonEventHandler(MoveGrid);
-            shapeGrid.Grid.MouseMove += new MouseEventHandler(MouseMoveGrid);
-            shapeGrid.Grid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
-            shapeGrid.Grid.ContextMenu = ShapeContextMenu();
+            shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
+            shapeGrid.MouseMove += new MouseEventHandler(MouseMoveGrid);
+            shapeGrid.MouseUp += new MouseButtonEventHandler(MouseUpGrid);
+            shapeGrid.ContextMenu = ShapeContextMenu();
 
-            FlowChart.Children.Add(shapeGrid.Grid);
+            FlowChart.Children.Add(shapeGrid);
         }
 
-        private void Connect(ShapeGrid start, ShapeGrid end)
+        private void Connect(GridShape start, GridShape end)
         {
+            Point[] anchors = GetBestAnchors(start, end);
+
             Line line = new Line
             {
-                X1 = start.RightAnchor.X,
-                Y1 = start.RightAnchor.Y,
-                X2 = end.RightAnchor.X,
-                Y2 = end.RightAnchor.Y,
+                X1 = anchors[0].X,
+                Y1 = anchors[0].Y,
+                X2 = anchors[1].X,
+                Y2 = anchors[1].Y,
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
-            FlowChart.Children.Add(line);
+            FlowChart.Children.Add(new Arrow(start, end).Draw());
             startShape = null;
             endShape = null;
         }
@@ -98,10 +100,10 @@ namespace WYSIWYGProject
 
         private void ShapeColour(object sender, RoutedEventArgs e)
         {
-            //bad line
-            Shape shape = (Shape) ((((ContextMenu)(((MenuItem)(((MenuItem)sender).Parent)).Parent)).PlacementTarget as Grid).Children[0]);
+            //dålig rad
+            Shape shape = (Shape)((((ContextMenu)(((MenuItem)(((MenuItem)sender).Parent)).Parent)).PlacementTarget as Grid).Children[0]);
 
-            switch (((MenuItem) sender).Header.ToString())
+            switch (((MenuItem)sender).Header.ToString())
             {
                 case "Cornsilk":
                     shape.Fill = Brushes.Cornsilk;
@@ -112,19 +114,19 @@ namespace WYSIWYGProject
                 case "MistyRose":
                     shape.Fill = Brushes.MistyRose;
                     break;
-            } 
+            }
         }
 
         private void DrawConnector(object sender, RoutedEventArgs e)
         {
-            if(startShape == null)
+            if (startShape == null)
             {
-                startShape = ((ContextMenu) ((MenuItem) sender).Parent).PlacementTarget as Grid;
+                startShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as GridShape;
             }
             else
             {
-                endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as Grid;
-                Connect(GetGrid(startShape), GetGrid(endShape));
+                endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as GridShape;
+                Connect(startShape, endShape);
             }
         }
 
@@ -142,16 +144,6 @@ namespace WYSIWYGProject
 
         }
 
-        private ShapeGrid GetGrid(Grid grid)
-        {
-            foreach (ShapeGrid shapeGrid in gridCollection)
-            {
-                if (shapeGrid.Grid == grid)
-                    return shapeGrid;
-            }
-            return null;
-        }
-
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             UIElementCollection uie = FlowChart.Children;
@@ -166,11 +158,8 @@ namespace WYSIWYGProject
                 }
             }
 
-            catch (Exception err)
-            {
-
-            }
-            }
+            catch (Exception) {}
+        }
 
         private void MoveGrid(object sender, RoutedEventArgs e)
         {
@@ -202,6 +191,7 @@ namespace WYSIWYGProject
         {
             Mouse.Capture(null);
             captured = false;
+           // ((GridShape)source).MakeAnchors();
         }
 
         private Grid CheckCollision()
@@ -228,6 +218,78 @@ namespace WYSIWYGProject
                 }
             }
             return null;
+        }
+
+        private Point[] GetBestAnchors(GridShape origin, GridShape target)
+        {
+            double startX = origin.Position.X, startY = origin.Position.Y;
+            double endX = target.Position.X, endY = target.Position.X;
+            Point[] bestAnchors = new Point[2];
+
+            if(startX < endX)
+            {
+                MessageBox.Show("Origin is left of target");
+                if (startY > endY)
+                {
+                    if (endX > endY)
+                    {
+                        bestAnchors[0] = origin.RightAnchor;
+                        bestAnchors[1] = target.LeftAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.TopAnchor;
+                        bestAnchors[1] = target.BottomAnchor;
+                    }
+                }
+                else
+                {
+                    //this is right
+                    if (endX < endY)
+                    {
+                        bestAnchors[0] = origin.RightAnchor;
+                        bestAnchors[1] = target.LeftAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.TopAnchor;
+                        bestAnchors[1] = target.BottomAnchor;
+                    }
+                }                
+            }
+            else
+            {
+                MessageBox.Show("Origin is right of target");
+                //this is right
+                if (startY < endY)
+                {
+                    if (endX > endY)
+                    {
+                        bestAnchors[0] = origin.LeftAnchor;
+                        bestAnchors[1] = target.RightAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.TopAnchor;
+                        bestAnchors[1] = target.BottomAnchor;
+                    }
+                }
+                else
+                {
+                    if (endX < endY)
+                    {
+                        bestAnchors[0] = origin.LeftAnchor;
+                        bestAnchors[1] = target.RightAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.TopAnchor;
+                        bestAnchors[1] = target.BottomAnchor;
+                    }
+                }
+            }
+            
+            return bestAnchors;
         }
     }
 }
