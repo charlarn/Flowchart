@@ -68,7 +68,7 @@ namespace WYSIWYGProject
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
-            FlowChart.Children.Add(new Arrow(start, end).Draw());
+            FlowChart.Children.Add(line);
             startShape = null;
             endShape = null;
         }
@@ -223,23 +223,23 @@ namespace WYSIWYGProject
         private Point[] GetBestAnchors(GridShape origin, GridShape target)
         {
             double startX = origin.Position.X, startY = origin.Position.Y;
-            double endX = target.Position.X, endY = target.Position.X;
+            double endX = target.Position.X, endY = target.Position.Y;
             Point[] bestAnchors = new Point[2];
 
             if(startX < endX)
             {
-                MessageBox.Show("Origin is left of target");
+                MessageBox.Show("Origin is left of target" + "Starty: " + startY + " Endy: " + endY);
                 if (startY > endY)
                 {
-                    if (endX > endY)
+                    if (endX < endY)
                     {
                         bestAnchors[0] = origin.RightAnchor;
                         bestAnchors[1] = target.LeftAnchor;
                     }
                     else
                     {
-                        bestAnchors[0] = origin.TopAnchor;
-                        bestAnchors[1] = target.BottomAnchor;
+                        bestAnchors[0] = origin.BottomAnchor;
+                        bestAnchors[1] = target.TopAnchor;
                     }
                 }
                 else
@@ -252,26 +252,26 @@ namespace WYSIWYGProject
                     }
                     else
                     {
-                        bestAnchors[0] = origin.TopAnchor;
-                        bestAnchors[1] = target.BottomAnchor;
+                        bestAnchors[0] = origin.BottomAnchor;
+                        bestAnchors[1] = target.TopAnchor;
                     }
                 }                
             }
             else
             {
-                MessageBox.Show("Origin is right of target");
+                MessageBox.Show("Origin is right of target" + "Startx: " + startX + " Endx: " + endX);
                 //this is right
                 if (startY < endY)
                 {
-                    if (endX > endY)
+                    if (endX < endY)
                     {
                         bestAnchors[0] = origin.LeftAnchor;
                         bestAnchors[1] = target.RightAnchor;
                     }
                     else
                     {
-                        bestAnchors[0] = origin.TopAnchor;
-                        bestAnchors[1] = target.BottomAnchor;
+                        bestAnchors[0] = origin.BottomAnchor;
+                        bestAnchors[1] = target.TopAnchor;
                     }
                 }
                 else
