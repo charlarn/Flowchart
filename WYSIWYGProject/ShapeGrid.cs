@@ -17,7 +17,7 @@ namespace WYSIWYGProject
         Connector
     };
 
-    class GridShape : Grid
+    class ShapeGrid : Grid
     {
         public Point LeftAnchor { get; private set; }
         public Point TopAnchor { get; private set; }
@@ -31,16 +31,16 @@ namespace WYSIWYGProject
         public List<Line> lines;
         public ShapeType Type { get; set; }
 
-        public GridShape(ShapeType type, double x, double y)
+        public ShapeGrid(ShapeType type, double x, double y)
         {
             Type = type;
-            Position = new Point(x, y);
             MakeTextBox();
             MakeShape();
             this.Children.Add(Shape);
             this.Children.Add(Text);
-            Canvas.SetLeft(this, Position.X);
-            Canvas.SetTop(this, Position.Y);
+            Canvas.SetLeft(this, x);
+            Canvas.SetTop(this, y);
+            Position = new Point(x + Shape.Width / 2, y + Shape.Height / 2);
             MakeAnchors();
             lines = new List<Line>();
         }

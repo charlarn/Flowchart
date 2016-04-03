@@ -12,7 +12,7 @@
             <Button>Line</Button>
             <Button>Edit</Button>
             <Button Click="Button_Click">Rotate</Button>
-            <Button Name="ButtonDrawLine" Click="ButtonDrawLine_Click">Draw line</Button>
+            <Button Name="ButtonDrawLine" Click="ButtonDrawLine_Click">Clear board</Button>
         </StackPanel>
         <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseDown="CanvasClicked">
             <Canvas.Background>

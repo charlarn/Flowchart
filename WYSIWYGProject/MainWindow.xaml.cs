@@ -22,8 +22,8 @@ namespace WYSIWYGProject
     {
         public Point mousePosition;
         List<bool> list = new List<bool>();
-        private GridShape startShape = null, endShape = null;
-        private List<GridShape> gridCollection = new List<GridShape>();
+        private ShapeGrid startShape = null, endShape = null;
+        private List<ShapeGrid> gridCollection = new List<ShapeGrid>();
 
         public MainWindow()
         {
@@ -38,13 +38,14 @@ namespace WYSIWYGProject
         private void CanvasClicked(object sender, RoutedEventArgs e)
         {
             Keyboard.ClearFocus();
+            //IsInTriangle();
             //  startShape = null;
             //  endShape = null;
         }
 
         private void Draw(string type)
         {
-            var shapeGrid = new GridShape((ShapeType)Enum.Parse(typeof(ShapeType), type), mousePosition.X, mousePosition.Y);
+            var shapeGrid = new ShapeGrid((ShapeType)Enum.Parse(typeof(ShapeType), type), mousePosition.X, mousePosition.Y);
             gridCollection.Add(shapeGrid);
 
             shapeGrid.MouseDown += new MouseButtonEventHandler(MoveGrid);
@@ -55,7 +56,7 @@ namespace WYSIWYGProject
             FlowChart.Children.Add(shapeGrid);
         }
 
-        private void Connect(GridShape start, GridShape end)
+        private void Connect(ShapeGrid start, ShapeGrid end)
         {
             Point[] anchors = GetBestAnchors(start, end);
 
@@ -68,9 +69,78 @@ namespace WYSIWYGProject
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
+            MakeArrow(anchors[0], anchors[1]);
+            MakeArrowhead(anchors[0], anchors[1]);
             FlowChart.Children.Add(line);
             startShape = null;
             endShape = null;
+        }
+
+        private void MakeArrowhead(Point a, Point b)
+        {
+            double deltaY = a.Y - b.Y;
+            double deltaX = a.X - b.X;
+
+            //  double angleInDegrees = Math.Atan(deltaY / deltaX) * 180 / Math.PI;
+            double angleInRadians = Math.Atan(deltaY / deltaX);
+            MessageBox.Show("ANGLE: " + angleInRadians);
+
+            //Line lineX = new Line
+            //{
+            //    X1 = b.X,
+            //    Y1 = b.Y,
+            //    X2 = b.X + 15 * Math.Cos(angleInRadians + 10),
+            //    Y2 = b.Y + 15 * Math.Sin(angleInRadians + 10),
+            //    Stroke = Brushes.Black,
+            //    StrokeThickness = 2
+            //};
+            //Line lineY = new Line
+            //{
+            //    X1 = b.X,
+            //    Y1 = b.Y,
+            //    X2 = b.X + 15 * Math.Cos(angleInRadians - 10),
+            //    Y2 = b.Y + 15 * Math.Sin(angleInRadians - 10),
+            //    Stroke = Brushes.Black,
+            //    StrokeThickness = 2
+            //};
+
+            Line lineX = new Line
+            {
+                X1 = b.X,
+                Y1 = b.Y,
+                X2 = b.X + 15 * Math.Cos(angleInRadians + 10) *-1,
+                Y2 = b.Y + 15 * Math.Sin(angleInRadians + 10) * -1,
+                Stroke = Brushes.Black,
+                StrokeThickness = 2
+            };
+            Line lineY = new Line
+            {
+                X1 = b.X,
+                Y1 = b.Y,
+                X2 = b.X + 15 * Math.Cos(angleInRadians - 10) * -1,
+                Y2 = b.Y + 15 * Math.Sin(angleInRadians - 10) * -1,
+                Stroke = Brushes.Black,
+                StrokeThickness = 2
+            };
+
+            // lineX.RenderTransformOrigin = new Point(0.5, 0.5);
+            // lineY.RenderTransformOrigin = new Point(0.5, 0.5);
+            //  lineX.RenderTransform = new RotateTransform(angleInDegrees + 20);
+            // lineY.RenderTransform = new RotateTransform(angleInDegrees - 20);
+
+            // lineX.RenderTransformOrigin()
+
+            FlowChart.Children.Add(lineX);
+            FlowChart.Children.Add(lineY);
+        }
+
+        private void MakeArrow(Point a, Point b)
+        {
+            double deltaY = a.Y - b.Y;
+            double deltaX = a.X - b.X;
+
+            double angleInDegrees = Math.Atan(deltaY / deltaX) * 180 / Math.PI;
+            MessageBox.Show("ANGLE: " + angleInDegrees);
         }
 
         private ContextMenu ShapeContextMenu()
@@ -121,11 +191,11 @@ namespace WYSIWYGProject
         {
             if (startShape == null)
             {
-                startShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as GridShape;
+                startShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as ShapeGrid;
             }
             else
             {
-                endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as GridShape;
+                endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as ShapeGrid;
                 Connect(startShape, endShape);
             }
         }
@@ -141,7 +211,7 @@ namespace WYSIWYGProject
 
         private void ButtonDrawLine_Click(object sender, RoutedEventArgs e)
         {
-
+            FlowChart.Children.Clear();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -220,63 +290,42 @@ namespace WYSIWYGProject
             return null;
         }
 
-        private Point[] GetBestAnchors(GridShape origin, GridShape target)
+        bool IsInTriangle()
         {
-            double startX = origin.Position.X, startY = origin.Position.Y;
-            double endX = target.Position.X, endY = target.Position.Y;
-            Point[] bestAnchors = new Point[2];
 
-            if(startX < endX)
+            Point point = Mouse.GetPosition(FlowChart);
+            Point a = new Point(FlowChart.Width/2, FlowChart.Height/2);
+            Point b = new Point(FlowChart.Width/2, FlowChart.Height);
+            Point c = new Point(0, FlowChart.Height);
+
+            MessageBox.Show("X: " + (point.X) + " Y: " + (point.Y - FlowChart.Height/2));  
+            if (point.Y > a.Y && point.X < b.X)
             {
-                MessageBox.Show("Origin is left of target" + "Starty: " + startY + " Endy: " + endY);
-                if (startY > endY)
-                {
-                    if (endX < endY)
-                    {
-                        bestAnchors[0] = origin.RightAnchor;
-                        bestAnchors[1] = target.LeftAnchor;
-                    }
-                    else
-                    {
-                        bestAnchors[0] = origin.BottomAnchor;
-                        bestAnchors[1] = target.TopAnchor;
-                    }
-                }
-                else
-                {
-                    //this is right
-                    if (endX < endY)
-                    {
-                        bestAnchors[0] = origin.RightAnchor;
-                        bestAnchors[1] = target.LeftAnchor;
-                    }
-                    else
-                    {
-                        bestAnchors[0] = origin.BottomAnchor;
-                        bestAnchors[1] = target.TopAnchor;
-                    }
-                }                
+                MessageBox.Show("Is in triangle: " + ((point.Y - FlowChart.Height / 2) - point.X ));
             }
             else
             {
-                MessageBox.Show("Origin is right of target" + "Startx: " + startX + " Endx: " + endX);
-                //this is right
-                if (startY < endY)
+                MessageBox.Show("Is outside of triangle" + (point.X - point.Y));
+            }
+
+
+            return false;
+        }
+
+        private Point[] GetBestAnchors(ShapeGrid origin, ShapeGrid target)
+        {
+            double originX = origin.Position.X, originY = origin.Position.Y;
+            double targetX = target.Position.X, targetY = target.Position.Y;
+            Point[] bestAnchors = new Point[2];
+
+            // om target är på vänster sida av origin
+            if (originX > targetX)
+            {
+                //om target är över origin = den övre vänstra kvadranten
+                if (originY > targetY)
                 {
-                    if (endX < endY)
-                    {
-                        bestAnchors[0] = origin.LeftAnchor;
-                        bestAnchors[1] = target.RightAnchor;
-                    }
-                    else
-                    {
-                        bestAnchors[0] = origin.BottomAnchor;
-                        bestAnchors[1] = target.TopAnchor;
-                    }
-                }
-                else
-                {
-                    if (endX < endY)
+                    //om target är i den vänstra triangeln i kvadranten
+                    if (originX - targetX > originY - targetY)
                     {
                         bestAnchors[0] = origin.LeftAnchor;
                         bestAnchors[1] = target.RightAnchor;
@@ -286,9 +335,52 @@ namespace WYSIWYGProject
                         bestAnchors[0] = origin.TopAnchor;
                         bestAnchors[1] = target.BottomAnchor;
                     }
+
+                }
+                else
+                {
+                    if (targetY - originY < originX - targetX)
+                    {
+                        bestAnchors[0] = origin.LeftAnchor;
+                        bestAnchors[1] = target.RightAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.BottomAnchor;
+                        bestAnchors[1] = target.TopAnchor;
+                    }
                 }
             }
-            
+            else
+            {
+                if (originY > targetY)
+                {
+                    if (targetX - originX > originY - targetY)
+                    {
+                        bestAnchors[0] = origin.RightAnchor;
+                        bestAnchors[1] = target.LeftAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.TopAnchor;
+                        bestAnchors[1] = target.BottomAnchor;
+                    }
+
+                }
+                else
+                {
+                    if (targetY - originY < targetX - originX)
+                    {
+                        bestAnchors[0] = origin.RightAnchor;
+                        bestAnchors[1] = target.LeftAnchor;
+                    }
+                    else
+                    {
+                        bestAnchors[0] = origin.BottomAnchor;
+                        bestAnchors[1] = target.TopAnchor;
+                    }
+                }
+            }
             return bestAnchors;
         }
     }

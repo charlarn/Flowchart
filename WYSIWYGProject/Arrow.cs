@@ -12,9 +12,9 @@ namespace WYSIWYGProject
     class Arrow 
     {
         private Line line;
-        private GridShape Origin, Target;
+        private ShapeGrid Origin, Target;
 
-        public Arrow(GridShape origin, GridShape target)
+        public Arrow(ShapeGrid origin, ShapeGrid target)
         {
             Origin = origin;
             Target = target;
