@@ -23,12 +23,14 @@ namespace WYSIWYGProject
         public Point TopAnchor { get; private set; }
         public Point RightAnchor { get; private set; }
         public Point BottomAnchor { get; private set; }
-        public Point Position { get; set; }
+        private Point GridPosition;
+        public Point Position { get { return GridPosition; } set { GridPosition = value; MakeAnchors(); } }
         public Point TargetAnchor { get; set; }
 
         private Shape Shape;
         public TextBox Text;
-        public List<Line> lines;
+        public List<Arrow> Connections;
+
         public ShapeType Type { get; set; }
 
         public ShapeGrid(ShapeType type, double x, double y)
@@ -41,25 +43,34 @@ namespace WYSIWYGProject
             Canvas.SetLeft(this, x);
             Canvas.SetTop(this, y);
             Position = new Point(x + Shape.Width / 2, y + Shape.Height / 2);
-            MakeAnchors();
-            lines = new List<Line>();
+            Connections = new List<Arrow>();
         }
 
-        public void RedrawLines()
+        public void RedrawArrows(Canvas flowchart)
         {
-            foreach(Line line in lines)
+            ShapeGrid origin; 
+            ShapeGrid target; 
+            for (int i = 0; i < Connections.Count; i++)
             {
-
+                Arrow oldArrow = Connections[i];
+                origin = oldArrow.Origin;
+                target = oldArrow.Target;
+                oldArrow.Erase();
+                Arrow newArrow = new Arrow(flowchart, oldArrow.Origin, oldArrow.Target);
+                //Ersätt referensen till oldArrow med den nya i både origin och target
+                origin.Connections[origin.Connections.IndexOf(oldArrow)] = newArrow;
+                target.Connections[target.Connections.IndexOf(oldArrow)] = newArrow;
             }
         }
 
-        public void MakeAnchors()
+        private void MakeAnchors()
         {
             if (Type == ShapeType.Decision)
             {
+                //För att nå ut till kanterna på "diamond" figuren så läggs halva differensen mellan diagonalen och höjden på (eller dras av)
                 LeftAnchor = new Point(Canvas.GetLeft(this) - ((Math.Sqrt(2) * Shape.Height) - Shape.Height)/2, Canvas.GetTop(this) + (Shape.Height / 2));
                 TopAnchor = new Point(Canvas.GetLeft(this) + (Shape.Height / 2), Canvas.GetTop(this) - ((Math.Sqrt(2) * Shape.Height) - Shape.Height) / 2);
-                RightAnchor = new Point(Canvas.GetLeft(this) + ((Math.Sqrt(2) * Shape.Height) - Shape.Height) / 2, Canvas.GetTop(this) + (Shape.Height / 2));
+                RightAnchor = new Point(Canvas.GetLeft(this) + Shape.Height + ((Math.Sqrt(2) * Shape.Height) - Shape.Height)/2, Canvas.GetTop(this) + (Shape.Height / 2));
                 BottomAnchor = new Point(Canvas.GetLeft(this) + (Shape.Height / 2), Canvas.GetTop(this) + ((Math.Sqrt(2) * Shape.Height) + Shape.Height) / 2);
             }
             else
