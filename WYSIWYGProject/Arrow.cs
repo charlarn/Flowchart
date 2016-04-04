@@ -43,7 +43,7 @@ namespace WYSIWYGProject
             //Linjens vinkel
             double angleInRadians = Math.Atan(deltaY / deltaX);
 
-            //15 är längden på pilhuvudet och 10 är pilhuvudets vinkel från linjen
+            //15 är längden på pilhuvudet och 10 är vinkeln från linjen
             head1 = new Line
             {
                 X1 = b.X,
@@ -75,9 +75,26 @@ namespace WYSIWYGProject
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
+            line.ContextMenu = LineContextMenu();
             Flowchart.Children.Add(line);
             Flowchart.Children.Add(head1);
             Flowchart.Children.Add(head2);
+        }
+
+        private ContextMenu LineContextMenu()
+        {
+            ContextMenu cm = new ContextMenu();
+            MenuItem mi = new MenuItem { Header = "Delete" };
+            mi.Click += new RoutedEventHandler(DeleteArrow);
+            cm.Items.Add(mi);
+            return cm;
+        }
+
+        private void DeleteArrow(object sender, RoutedEventArgs e)
+        {
+            Erase();
+            Origin.Connections.Remove(this);
+            Target.Connections.Remove(this);
         }
 
         private void SetAnchors()
@@ -102,7 +119,6 @@ namespace WYSIWYGProject
                         AnchorOrigin = Origin.TopAnchor;
                         AnchorTarget = Target.BottomAnchor;
                     }
-
                 }
                 else
                 {

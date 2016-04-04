@@ -6,17 +6,50 @@
         xmlns:local="clr-namespace:WYSIWYGProject"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1000">
+    <Window.Resources>
+        <!-- This style is used for buttons, to remove the WPF default 'animated' mouse over effect -->
+        <Style x:Key="MyButtonStyle" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="border" 
+                            BorderThickness="1"
+                            Padding="4,2" 
+                            BorderBrush="DarkGray" 
+                            CornerRadius="3" 
+                            Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid Name="MainGrid">
         <StackPanel Orientation="Horizontal" Height="50" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,75,0,0">
-            <Button>Colour</Button>
-            <Button>Line</Button>
-            <Button>Edit</Button>
-            <Button Click="Button_Click">Rotate</Button>
-            <Button Name="ButtonDrawLine" Click="ButtonDrawLine_Click">Clear board</Button>
+            <Button x:Name="ButtonEditText" Width="50" Height="50" Margin="10,0,10,-10" Click="EditText_Click" Style="{StaticResource MyButtonStyle}">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/EditText.png"/>
+                </Button.Background>
+                <Button.ToolTip>Edit text</Button.ToolTip>
+            </Button>
+            <Button x:Name="ButtonClearBoard" Margin="10,0,10,-10" Click="ClearBoard_Click" Width="50" Height="50" Style="{StaticResource MyButtonStyle}">
+                <Button.Background>
+                    <ImageBrush ImageSource="Images/erase-512.png"/>
+                </Button.Background>
+                <Button.ToolTip>Clear board</Button.ToolTip>
+            </Button>
         </StackPanel>
         <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseDown="CanvasClicked">
             <Canvas.Background>
-                <ImageBrush ImageSource="Images/cache_800_800_0__100_Patterns_Template_1-1.png"/>
+                <ImageBrush ImageSource="Images/Grid-Background-to-repeat-250-px-high.jpg" TileMode="FlipX" Viewport="0, 0, 250, 246" ViewportUnits="Absolute"/>
             </Canvas.Background>
             <Canvas.ContextMenu>
                 <ContextMenu>
@@ -31,3 +64,4 @@
         </Canvas>
     </Grid>
 </Window>
+

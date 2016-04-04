@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/cache_800_800_0__100_patterns_template_1-1.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/erase-512.png")]
 
 

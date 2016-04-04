@@ -27,7 +27,7 @@ namespace WYSIWYGProject
         public Point Position { get { return GridPosition; } set { GridPosition = value; MakeAnchors(); } }
         public Point TargetAnchor { get; set; }
 
-        private Shape Shape;
+        public Shape Shape;
         public TextBox Text;
         public List<Arrow> Connections;
 
@@ -38,10 +38,11 @@ namespace WYSIWYGProject
             Type = type;
             MakeTextBox();
             MakeShape();
-            this.Children.Add(Shape);
-            this.Children.Add(Text);
+            Children.Add(Shape);
+            Children.Add(Text);
             Canvas.SetLeft(this, x);
             Canvas.SetTop(this, y);
+            //Position sätts till att vara i mitten av Shape istället för uppe i vänstra hörnet så att rätt anchors kan hittas
             Position = new Point(x + Shape.Width / 2, y + Shape.Height / 2);
             Connections = new List<Arrow>();
         }
@@ -57,7 +58,7 @@ namespace WYSIWYGProject
                 target = oldArrow.Target;
                 oldArrow.Erase();
                 Arrow newArrow = new Arrow(flowchart, oldArrow.Origin, oldArrow.Target);
-                //Ersätt referensen till oldArrow med den nya i både origin och target
+                //Ersätter index för oldArrow med den nya i både origin och target
                 origin.Connections[origin.Connections.IndexOf(oldArrow)] = newArrow;
                 target.Connections[target.Connections.IndexOf(oldArrow)] = newArrow;
             }
@@ -90,7 +91,8 @@ namespace WYSIWYGProject
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 Background = new SolidColorBrush { Opacity = 0 },
-                BorderThickness = new Thickness(0)
+                BorderThickness = new Thickness(0),
+                IsEnabled = false
             };
         }
 
