@@ -10,11 +10,12 @@ using System.Windows.Shapes;
 
 namespace WYSIWYGProject
 {
-    class Arrow 
+    class Arrow
     {
+        private List<Line> Lines;
         public Line line, head1, head2;
         public ShapeGrid Origin, Target;
-        private Point AnchorOrigin, AnchorTarget;
+        private Point AnchorOrigin, AnchorTarget, PathAnchor1, PathAnchor2;
         private Canvas Flowchart;
 
         public Arrow(Canvas flowchart, ShapeGrid origin, ShapeGrid target)
@@ -22,34 +23,36 @@ namespace WYSIWYGProject
             Flowchart = flowchart;
             Origin = origin;
             Target = target;
+            Lines = new List<Line>();
             SetAnchors();
             Set();
         }
-        
+
         public void Erase()
         {
-            Flowchart.Children.Remove(head1);
-            Flowchart.Children.Remove(head2);
-            Flowchart.Children.Remove(line);
+            foreach (Line line in Lines)
+            {
+                Flowchart.Children.Remove(line);
+            }
         }
 
-        private void MakeArrowhead(int side)
+        private void MakeArrowhead(int angleInDegrees)
         {
             Point a = AnchorOrigin, b = AnchorTarget;
 
             double deltaY = a.Y - b.Y;
             double deltaX = a.X - b.X;
+            double angleInRadians = angleInDegrees * Math.PI / 180;
 
             //Linjens vinkel
-            double angleInRadians = Math.Atan(deltaY / deltaX);
 
             //15 är längden på pilhuvudet och 10 är vinkeln från linjen
             head1 = new Line
             {
                 X1 = b.X,
                 Y1 = b.Y,
-                X2 = b.X + 15 * Math.Cos(angleInRadians + 10) * side,
-                Y2 = b.Y + 15 * Math.Sin(angleInRadians + 10) * side,
+                X2 = b.X + 10 * Math.Cos(angleInRadians + 10),
+                Y2 = b.Y + 10 * Math.Sin(angleInRadians + 10),
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
@@ -57,8 +60,8 @@ namespace WYSIWYGProject
             {
                 X1 = b.X,
                 Y1 = b.Y,
-                X2 = b.X + 15 * Math.Cos(angleInRadians - 10) * side,
-                Y2 = b.Y + 15 * Math.Sin(angleInRadians - 10) * side,
+                X2 = b.X + 10 * Math.Cos(angleInRadians - 10),
+                Y2 = b.Y + 10 * Math.Sin(angleInRadians - 10),
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
@@ -70,15 +73,40 @@ namespace WYSIWYGProject
             {
                 X1 = AnchorOrigin.X,
                 Y1 = AnchorOrigin.Y,
+                X2 = PathAnchor1.X,
+                Y2 = PathAnchor1.Y,
+                Stroke = Brushes.Black,
+                StrokeThickness = 2
+            };
+            Line line2 = new Line
+            {
+                X1 = PathAnchor1.X,
+                Y1 = PathAnchor1.Y,
+                X2 = PathAnchor2.X,
+                Y2 = PathAnchor2.Y,
+                Stroke = Brushes.Black,
+                StrokeThickness = 2
+            };
+            Line line3 = new Line
+            {
+                X1 = PathAnchor2.X,
+                Y1 = PathAnchor2.Y,
                 X2 = AnchorTarget.X,
                 Y2 = AnchorTarget.Y,
                 Stroke = Brushes.Black,
                 StrokeThickness = 2
             };
-            line.ContextMenu = LineContextMenu();
-            Flowchart.Children.Add(line);
-            Flowchart.Children.Add(head1);
-            Flowchart.Children.Add(head2);
+
+            Lines.Add(line);
+            Lines.Add(line2);
+            Lines.Add(line3);
+            Lines.Add(head1);
+            Lines.Add(head2);
+            foreach (Line line in Lines)
+            {
+                line.ContextMenu = LineContextMenu();
+                Flowchart.Children.Add(line);
+            }
         }
 
         private ContextMenu LineContextMenu()
@@ -97,6 +125,7 @@ namespace WYSIWYGProject
             Target.Connections.Remove(this);
         }
 
+        //Denna metod kan innehålla onödigt många rader
         private void SetAnchors()
         {
             double originX = Origin.Position.X, originY = Origin.Position.Y;
@@ -113,11 +142,17 @@ namespace WYSIWYGProject
                     {
                         AnchorOrigin = Origin.LeftAnchor;
                         AnchorTarget = Target.RightAnchor;
+                        PathAnchor1 = new Point((AnchorOrigin.X) - ((AnchorOrigin.X - AnchorTarget.X) / 2), AnchorOrigin.Y);
+                        PathAnchor2 = new Point((AnchorOrigin.X) - ((AnchorOrigin.X - AnchorTarget.X) / 2), AnchorTarget.Y);
+                        MakeArrowhead(180);
                     }
                     else
                     {
                         AnchorOrigin = Origin.TopAnchor;
                         AnchorTarget = Target.BottomAnchor;
+                        PathAnchor1 = new Point(AnchorOrigin.X, (AnchorOrigin.Y) - ((AnchorOrigin.Y - AnchorTarget.Y) / 2));
+                        PathAnchor2 = new Point(AnchorTarget.X, (AnchorOrigin.Y) - ((AnchorOrigin.Y - AnchorTarget.Y) / 2));
+                        MakeArrowhead(270);
                     }
                 }
                 else
@@ -126,15 +161,19 @@ namespace WYSIWYGProject
                     {
                         AnchorOrigin = Origin.LeftAnchor;
                         AnchorTarget = Target.RightAnchor;
+                        PathAnchor1 = new Point((AnchorOrigin.X) - ((AnchorOrigin.X - AnchorTarget.X) / 2), AnchorOrigin.Y);
+                        PathAnchor2 = new Point((AnchorOrigin.X) - ((AnchorOrigin.X - AnchorTarget.X) / 2), AnchorTarget.Y);
+                        MakeArrowhead(180);
                     }
                     else
                     {
                         AnchorOrigin = Origin.BottomAnchor;
                         AnchorTarget = Target.TopAnchor;
+                        PathAnchor1 = new Point(AnchorOrigin.X, (AnchorOrigin.Y) - ((AnchorOrigin.Y - AnchorTarget.Y) / 2));
+                        PathAnchor2 = new Point(AnchorTarget.X, (AnchorOrigin.Y) - ((AnchorOrigin.Y - AnchorTarget.Y) / 2));
+                        MakeArrowhead(90);
                     }
                 }
-                //Körs med -1 om target är på vänster sida av origin, annars 1
-                MakeArrowhead(-1);
             }
             else
             {
@@ -144,11 +183,17 @@ namespace WYSIWYGProject
                     {
                         AnchorOrigin = Origin.RightAnchor;
                         AnchorTarget = Target.LeftAnchor;
+                        PathAnchor1 = new Point((AnchorOrigin.X) + ((AnchorTarget.X - AnchorOrigin.X) / 2), AnchorOrigin.Y);
+                        PathAnchor2 = new Point((AnchorOrigin.X) + ((AnchorTarget.X - AnchorOrigin.X) / 2), AnchorTarget.Y);
+                        MakeArrowhead(0);
                     }
                     else
                     {
                         AnchorOrigin = Origin.TopAnchor;
                         AnchorTarget = Target.BottomAnchor;
+                        PathAnchor1 = new Point(AnchorOrigin.X, (AnchorOrigin.Y) + ((AnchorTarget.Y - AnchorOrigin.Y) / 2));
+                        PathAnchor2 = new Point(AnchorTarget.X, (AnchorOrigin.Y) + ((AnchorTarget.Y - AnchorOrigin.Y) / 2));
+                        MakeArrowhead(270);
                     }
 
                 }
@@ -158,14 +203,19 @@ namespace WYSIWYGProject
                     {
                         AnchorOrigin = Origin.RightAnchor;
                         AnchorTarget = Target.LeftAnchor;
+                        PathAnchor1 = new Point((AnchorOrigin.X) + ((AnchorTarget.X - AnchorOrigin.X) / 2), AnchorOrigin.Y);
+                        PathAnchor2 = new Point((AnchorOrigin.X) + ((AnchorTarget.X - AnchorOrigin.X) / 2), AnchorTarget.Y);
+                        MakeArrowhead(0);
                     }
                     else
                     {
                         AnchorOrigin = Origin.BottomAnchor;
                         AnchorTarget = Target.TopAnchor;
+                        PathAnchor1 = new Point(AnchorOrigin.X, (AnchorOrigin.Y) + ((AnchorTarget.Y - AnchorOrigin.Y) / 2));
+                        PathAnchor2 = new Point(AnchorTarget.X, (AnchorOrigin.Y) + ((AnchorTarget.Y - AnchorOrigin.Y) / 2));
+                        MakeArrowhead(90);
                     }
                 }
-                MakeArrowhead(1);
             }
         }
     }
