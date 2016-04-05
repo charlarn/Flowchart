@@ -96,11 +96,19 @@ namespace WYSIWYGProject
         private void DeleteShapegrid(object sender, RoutedEventArgs e)
         {
             ShapeGrid shapeGrid = (((ContextMenu)((((MenuItem)sender).Parent))).PlacementTarget as ShapeGrid);
-            Arrow arrow;
-            for(int i = 0; i < shapeGrid.Connections.Count; i++)
+            List<Arrow> ToRemove = new List<Arrow>();
+            foreach (Arrow arrow in shapeGrid.Connections)
             {
-
+                ToRemove.Add(arrow);
             }
+            foreach (Arrow arrow in ToRemove)
+            {
+                arrow.Erase();
+                arrow.Origin.Connections.Remove(arrow);
+                arrow.Target.Connections.Remove(arrow);
+            }
+
+
             FlowChart.Children.Remove(shapeGrid);
         }
 
