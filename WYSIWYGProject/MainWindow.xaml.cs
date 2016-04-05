@@ -36,21 +36,27 @@ namespace WYSIWYGProject
 
         private void CanvasClicked(object sender, RoutedEventArgs e)
         {
-            //Keyboard.ClearFocus();
-            //  startShape = null;
-            //  endShape = null;
+            startShape = null;
+            endShape = null;
         }
 
         private void Draw(string type)
         {
             var shapeGrid = new ShapeGrid((ShapeType)Enum.Parse(typeof(ShapeType), type), mousePosition.X, mousePosition.Y);
 
-            shapeGrid.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeMousedown);
-            shapeGrid.MouseMove += new MouseEventHandler(ShapeMousemove);
-            shapeGrid.MouseLeftButtonUp += new MouseButtonEventHandler(ShapeMouseup);
-            shapeGrid.ContextMenu = ShapeContextMenu();
+            if (!CheckCollision(shapeGrid))
+            {
+                shapeGrid.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeMousedown);
+                shapeGrid.MouseMove += new MouseEventHandler(ShapeMousemove);
+                shapeGrid.MouseLeftButtonUp += new MouseButtonEventHandler(ShapeMouseup);
+                shapeGrid.ContextMenu = ShapeContextMenu();
 
-            FlowChart.Children.Add(shapeGrid);
+                FlowChart.Children.Add(shapeGrid);
+            }
+            else
+            {
+                MessageBox.Show("Collision!");
+            }
         }
 
         private void Connect(ShapeGrid origin, ShapeGrid target)
@@ -145,6 +151,8 @@ namespace WYSIWYGProject
         private void SaveMousePosition(object sender, RoutedEventArgs e)
         {
             mousePosition = Mouse.GetPosition(FlowChart);
+            if (LabelPlaceComponent.IsVisible)
+                LabelPlaceComponent.Visibility = Visibility.Hidden;
         }
 
         bool captured = false;
@@ -155,6 +163,47 @@ namespace WYSIWYGProject
         private void ClearBoard_Click(object sender, RoutedEventArgs e)
         {
             FlowChart.Children.Clear();
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        //Med hjälp från stackoverflow.com
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            Rect bounds = VisualTreeHelper.GetDescendantBounds(FlowChart);
+            double dpi = 96d;
+
+            RenderTargetBitmap rtb = new RenderTargetBitmap((int)bounds.Width, (int)bounds.Height, dpi, dpi, System.Windows.Media.PixelFormats.Default);
+
+            DrawingVisual dv = new DrawingVisual();
+            using (DrawingContext dc = dv.RenderOpen())
+            {
+                VisualBrush vb = new VisualBrush(FlowChart);
+                dc.DrawRectangle(vb, null, new Rect(new Point(), bounds.Size));
+            }
+
+            rtb.Render(dv);
+
+            BitmapEncoder pngEncoder = new PngBitmapEncoder();
+            pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
+
+            try
+            {
+                System.IO.MemoryStream ms = new System.IO.MemoryStream();
+
+                pngEncoder.Save(ms);
+                ms.Close();
+
+                System.IO.File.WriteAllBytes("Flowchart.png", ms.ToArray());
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            MessageBox.Show("Flowchart saved as 'Flowchart.png'!");
         }
 
         private void EditText_Click(object sender, RoutedEventArgs e)
@@ -219,7 +268,7 @@ namespace WYSIWYGProject
         private void ShapeMouseup(object sender, MouseButtonEventArgs e)
         {
             ShapeGrid shape = (ShapeGrid)sender;
-            if (CheckCollision())
+            if (CheckCollision((ShapeGrid)source))
             {
                 //Flytta tillbaks shape till orginalpositionen om den kolliderar
                 MessageBox.Show("Collison!");
@@ -235,9 +284,8 @@ namespace WYSIWYGProject
         }
 
         //Ändrad så att kollisionsdetektion sker på hela rektanglar istället för punkter
-        private bool CheckCollision()
+        private bool CheckCollision(ShapeGrid movingShape)
         {
-            ShapeGrid movingShape = (ShapeGrid)source;
             List<ShapeGrid> shapeGrids = new List<ShapeGrid>();
             shapeGrids.AddRange(FlowChart.Children.OfType<ShapeGrid>());
             shapeGrids.Remove(movingShape);
@@ -246,8 +294,8 @@ namespace WYSIWYGProject
 
             double xCoord, yCoord, xWidth, yHeight;
 
-            //padding gör kollisionsarean större
-            double padding = 13;
+            //margin gör kollisionsarean större
+            double margin = 13;
 
             double shapeX1 = Canvas.GetLeft(movingShape), shapeX2 = Canvas.GetLeft(movingShape) + shape.Width,
                 shapeY1 = Canvas.GetTop(movingShape), shapeY2 = Canvas.GetTop(movingShape) + shape.Height;
@@ -256,11 +304,11 @@ namespace WYSIWYGProject
             {
                 if (shapeGrid.Type == ShapeType.Decision)
                 {
-                    padding += ((Math.Sqrt(2) * shapeGrid.Shape.Width) - shapeGrid.Shape.Height) / 2 - 8;
+                    margin += ((Math.Sqrt(2) * shapeGrid.Shape.Width) - shapeGrid.Shape.Height) / 2 - 4;
                 }
                 if (movingShape.Type == ShapeType.Decision)
                 {
-                    padding += ((Math.Sqrt(2) * movingShape.Shape.Width) - movingShape.Shape.Height) / 2 - 8;
+                    margin += ((Math.Sqrt(2) * movingShape.Shape.Width) - movingShape.Shape.Height) / 2 - 4;
                 }
 
                 xCoord = Canvas.GetLeft(shapeGrid);
@@ -269,19 +317,19 @@ namespace WYSIWYGProject
                 xWidth = ((Shape)shapeGrid.Children[0]).Width;
                 yHeight = ((Shape)shapeGrid.Children[0]).Height;
 
-                if (xCoord - padding < shapeX1 && shapeX1 < (xCoord + xWidth) + padding && yCoord - padding < shapeY1 && shapeY1 < (yCoord + yHeight) + padding)
+                if (xCoord - margin < shapeX1 && shapeX1 < (xCoord + xWidth) + margin && yCoord - margin < shapeY1 && shapeY1 < (yCoord + yHeight) + margin)
                 {
                     return true;
                 }
-                else if (xCoord - padding < shapeX2 && shapeX2 < (xCoord + xWidth) + padding && yCoord - padding < shapeY1 && shapeY1 < (yCoord + yHeight) + padding)
+                else if (xCoord - margin < shapeX2 && shapeX2 < (xCoord + xWidth) + margin && yCoord - margin < shapeY1 && shapeY1 < (yCoord + yHeight) + margin)
                 {
                     return true;
                 }
-                else if (xCoord - padding < shapeX1 && shapeX1 < (xCoord + xWidth) + padding && yCoord - padding < shapeY2 && shapeY2 < (yCoord + yHeight) + padding)
+                else if (xCoord - margin < shapeX1 && shapeX1 < (xCoord + xWidth) + margin && yCoord - margin < shapeY2 && shapeY2 < (yCoord + yHeight) + margin)
                 {
                     return true;
                 }
-                else if (xCoord - padding < shapeX2 && shapeX2 < (xCoord + xWidth) + padding && yCoord - padding < shapeY2 && shapeY2 < (yCoord + yHeight) + padding)
+                else if (xCoord - margin < shapeX2 && shapeX2 < (xCoord + xWidth) + margin && yCoord - margin < shapeY2 && shapeY2 < (yCoord + yHeight) + margin)
                 {
                     return true;
                 }

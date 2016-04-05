@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WYSIWYGProject"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="1000">
+        Title="Flowchart Editor" Height="800" Width="1000">
     <Window.Resources>
         <!-- This style is used for buttons, to remove the WPF default 'animated' mouse over effect -->
         <Style x:Key="MyButtonStyle" TargetType="Button">
@@ -33,6 +33,16 @@
         </Style>
     </Window.Resources>
     <Grid Name="MainGrid">
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="File">
+                    <MenuItem Header="Save" Click="Save_Click"/>
+                    <MenuItem Header="Clear board" Click="ClearBoard_Click"/>
+                    <MenuItem Header="Close" Click="Close_Click"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel></StackPanel>
+        </DockPanel>
         <StackPanel Orientation="Horizontal" Height="50" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,75,0,0">
             <Button x:Name="ButtonEditText" Width="50" Height="50" Margin="10,0,10,-10" Click="EditText_Click" Style="{StaticResource MyButtonStyle}">
                 <Button.Background>
@@ -47,7 +57,7 @@
                 <Button.ToolTip>Clear board</Button.ToolTip>
             </Button>
         </StackPanel>
-        <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseDown="CanvasClicked">
+        <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseLeftButtonDown="CanvasClicked">
             <Canvas.Background>
                 <ImageBrush ImageSource="Images/Grid-Background-to-repeat-250-px-high.jpg" TileMode="FlipX" Viewport="0, 0, 250, 246" ViewportUnits="Absolute"/>
             </Canvas.Background>
@@ -61,6 +71,7 @@
                     </MenuItem>
                 </ContextMenu>
             </Canvas.ContextMenu>
+            <Label Name="LabelPlaceComponent" FontSize="24" Margin="220, 200, 0, 0">Right click to place components</Label>
         </Canvas>
     </Grid>
 </Window>
