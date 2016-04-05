@@ -304,11 +304,11 @@ namespace WYSIWYGProject
             {
                 if (shapeGrid.Type == ShapeType.Decision)
                 {
-                    margin += ((Math.Sqrt(2) * shapeGrid.Shape.Width) - shapeGrid.Shape.Height) / 2 - 4;
+                    margin += ((Math.Sqrt(2) * shapeGrid.Shape.Width) - shapeGrid.Shape.Height) / 2 - 10;
                 }
                 if (movingShape.Type == ShapeType.Decision)
                 {
-                    margin += ((Math.Sqrt(2) * movingShape.Shape.Width) - movingShape.Shape.Height) / 2 - 4;
+                    margin += ((Math.Sqrt(2) * movingShape.Shape.Width) - movingShape.Shape.Height) / 2 - 10;
                 }
 
                 xCoord = Canvas.GetLeft(shapeGrid);
