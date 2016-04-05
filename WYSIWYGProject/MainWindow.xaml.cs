@@ -22,7 +22,6 @@ namespace WYSIWYGProject
     {
         public Point mousePosition;
         private ShapeGrid startShape = null, endShape = null;
-        private List<ShapeGrid> gridCollection = new List<ShapeGrid>();
         private bool editingActive = false;
 
         public MainWindow()
@@ -45,7 +44,6 @@ namespace WYSIWYGProject
         private void Draw(string type)
         {
             var shapeGrid = new ShapeGrid((ShapeType)Enum.Parse(typeof(ShapeType), type), mousePosition.X, mousePosition.Y);
-            gridCollection.Add(shapeGrid);
 
             shapeGrid.MouseLeftButtonDown += new MouseButtonEventHandler(ShapeMousedown);
             shapeGrid.MouseMove += new MouseEventHandler(ShapeMousemove);
