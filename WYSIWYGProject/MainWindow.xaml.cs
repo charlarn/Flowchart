@@ -20,9 +20,11 @@ namespace WYSIWYGProject
     /// </summary>
     public partial class MainWindow : Window
     {
-        public Point mousePosition;
+        private Point mousePosition, originalPosition;
         private ShapeGrid startShape = null, endShape = null;
-        private bool editingActive = false;
+        private UIElement source = null;
+        private bool editingActive = false, captured = false;
+        private double x_Shape, x_Canvas, y_Shape, y_Canvas;
 
         public MainWindow()
         {
@@ -144,7 +146,10 @@ namespace WYSIWYGProject
             else
             {
                 endShape = ((ContextMenu)((MenuItem)sender).Parent).PlacementTarget as ShapeGrid;
-                Connect(startShape, endShape);
+                if (startShape != endShape)
+                    Connect(startShape, endShape);
+                else
+                    startShape = null; endShape = null;
             }
         }
 
@@ -154,11 +159,6 @@ namespace WYSIWYGProject
             if (LabelPlaceComponent.IsVisible)
                 LabelPlaceComponent.Visibility = Visibility.Hidden;
         }
-
-        bool captured = false;
-        double x_shape, x_canvas, y_shape, y_canvas;
-        Point originalPosition;
-        UIElement source = null;
 
         private void ClearBoard_Click(object sender, RoutedEventArgs e)
         {
@@ -212,7 +212,7 @@ namespace WYSIWYGProject
             shapeGrids.AddRange(FlowChart.Children.OfType<ShapeGrid>());
             if (!editingActive)
             {
-                ButtonEditText.BorderBrush = Brushes.Red;
+                Resources["EditBorder"] = Brushes.Red;
                 foreach (ShapeGrid shape in shapeGrids)
                 {
                     shape.Text.IsEnabled = true;
@@ -221,6 +221,7 @@ namespace WYSIWYGProject
             }
             else
             {
+                Resources["EditBorder"] = Brushes.Transparent;
                 ButtonEditText.BorderBrush = Brushes.White;
                 foreach (ShapeGrid shape in shapeGrids)
                 {
@@ -236,10 +237,10 @@ namespace WYSIWYGProject
             originalPosition = new Point(Canvas.GetLeft(source), Canvas.GetTop(source));
             Mouse.Capture(source);
             captured = true;
-            x_shape = Canvas.GetLeft(source);
-            x_canvas = Mouse.GetPosition(FlowChart).X;
-            y_shape = Canvas.GetTop(source);
-            y_canvas = Mouse.GetPosition(FlowChart).Y;
+            x_Shape = Canvas.GetLeft(source);
+            x_Canvas = Mouse.GetPosition(FlowChart).X;
+            y_Shape = Canvas.GetTop(source);
+            y_Canvas = Mouse.GetPosition(FlowChart).Y;
         }
 
         private void ShapeMousemove(object sender, MouseEventArgs e)
@@ -252,14 +253,14 @@ namespace WYSIWYGProject
                 //Dessa två variabler används för att uppdatera shapes position från mitten
                 double shapePosX = shape.Position.X;
                 double shapePosY = shape.Position.Y;
-                x_shape += x - x_canvas;
-                shapePosX += x - x_canvas;
-                Canvas.SetLeft(source, x_shape);
-                x_canvas = x;
-                y_shape += y - y_canvas;
-                shapePosY += y - y_canvas;
-                Canvas.SetTop(source, y_shape);
-                y_canvas = y;
+                x_Shape += x - x_Canvas;
+                shapePosX += x - x_Canvas;
+                Canvas.SetLeft(source, x_Shape);
+                x_Canvas = x;
+                y_Shape += y - y_Canvas;
+                shapePosY += y - y_Canvas;
+                Canvas.SetTop(source, y_Shape);
+                y_Canvas = y;
                 shape.Position = new Point(shapePosX, shapePosY);
                 shape.RedrawArrows(FlowChart);
             }
@@ -271,7 +272,6 @@ namespace WYSIWYGProject
             if (CheckCollision((ShapeGrid)source))
             {
                 //Flytta tillbaks shape till orginalpositionen om den kolliderar
-                MessageBox.Show("Collison!");
                 Canvas.SetLeft(shape, originalPosition.X);
                 Canvas.SetTop(shape, originalPosition.Y);
                 shape.Position = new Point(originalPosition.X + shape.Shape.Width / 2, originalPosition.Y + shape.Shape.Height / 2);
@@ -283,22 +283,29 @@ namespace WYSIWYGProject
             endShape = null;
         }
 
-        //Ändrad så att kollisionsdetektion sker på hela rektanglar istället för punkter
+        //Ändrad så att kollisionsdetektion sker på hela rektanglar istället för en punkt
         private bool CheckCollision(ShapeGrid movingShape)
         {
+            Shape shape = (Shape)movingShape.Children[0];
+
+            double shapeX1 = Canvas.GetLeft(movingShape), shapeX2 = Canvas.GetLeft(movingShape) + shape.Width, 
+                shapeY1 = Canvas.GetTop(movingShape), shapeY2 = Canvas.GetTop(movingShape) + shape.Height;
+
+            //Om shape dras utanför canvas
+            if (shapeX1 < 0 || shapeY1 < 0 || shapeX2 > FlowChart.Width || shapeY2 > FlowChart.Height)
+            {
+                MessageBox.Show("Out of bounds!");
+                return true;
+            }
+
             List<ShapeGrid> shapeGrids = new List<ShapeGrid>();
             shapeGrids.AddRange(FlowChart.Children.OfType<ShapeGrid>());
             shapeGrids.Remove(movingShape);
-
-            Shape shape = (Shape)movingShape.Children[0];
 
             double xCoord, yCoord, xWidth, yHeight;
 
             //margin gör kollisionsarean större
             double margin = 13;
-
-            double shapeX1 = Canvas.GetLeft(movingShape), shapeX2 = Canvas.GetLeft(movingShape) + shape.Width,
-                shapeY1 = Canvas.GetTop(movingShape), shapeY2 = Canvas.GetTop(movingShape) + shape.Height;
 
             foreach (ShapeGrid shapeGrid in shapeGrids)
             {
@@ -319,18 +326,22 @@ namespace WYSIWYGProject
 
                 if (xCoord - margin < shapeX1 && shapeX1 < (xCoord + xWidth) + margin && yCoord - margin < shapeY1 && shapeY1 < (yCoord + yHeight) + margin)
                 {
+                    MessageBox.Show("Collison!");
                     return true;
                 }
                 else if (xCoord - margin < shapeX2 && shapeX2 < (xCoord + xWidth) + margin && yCoord - margin < shapeY1 && shapeY1 < (yCoord + yHeight) + margin)
                 {
+                    MessageBox.Show("Collison!");
                     return true;
                 }
                 else if (xCoord - margin < shapeX1 && shapeX1 < (xCoord + xWidth) + margin && yCoord - margin < shapeY2 && shapeY2 < (yCoord + yHeight) + margin)
                 {
+                    MessageBox.Show("Collison!");
                     return true;
                 }
                 else if (xCoord - margin < shapeX2 && shapeX2 < (xCoord + xWidth) + margin && yCoord - margin < shapeY2 && shapeY2 < (yCoord + yHeight) + margin)
                 {
+                    MessageBox.Show("Collison!");
                     return true;
                 }
             }

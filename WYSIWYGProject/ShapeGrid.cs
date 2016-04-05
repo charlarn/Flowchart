@@ -104,7 +104,7 @@ namespace WYSIWYGProject
                     Shape = new Rectangle();
                     Shape.Width = 100;
                     Shape.Height = 75;
-                    Shape.Fill = new SolidColorBrush(Colors.Crimson);
+                    Shape.Fill = new SolidColorBrush(Colors.Cornsilk);
                     break;
                 case ShapeType.Decision:
                     Shape = new Rectangle();
@@ -113,13 +113,13 @@ namespace WYSIWYGProject
                     Shape.RenderTransform = rotateTransform;
                     Shape.Width = 75;
                     Shape.Height = 75;
-                    Shape.Fill = new SolidColorBrush(Colors.LimeGreen);
+                    Shape.Fill = new SolidColorBrush(Colors.MistyRose);
                     break;
                 case ShapeType.Connector:
                     Shape = new Ellipse();
                     Shape.Width = 75;
                     Shape.Height = 75;
-                    Shape.Fill = new SolidColorBrush(Colors.DeepSkyBlue);
+                    Shape.Fill = new SolidColorBrush(Colors.Honeydew);
                     break;
             }
             Shape.Stroke = new SolidColorBrush(Colors.DarkMagenta);

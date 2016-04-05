@@ -14,10 +14,10 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Name="border" 
+                        <Border x:Name="border" 
                             BorderThickness="1"
                             Padding="4,2" 
-                            BorderBrush="DarkGray" 
+                            BorderBrush="{DynamicResource EditBorder}" 
                             CornerRadius="3" 
                             Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -50,14 +50,8 @@
                 </Button.Background>
                 <Button.ToolTip>Edit text</Button.ToolTip>
             </Button>
-            <Button x:Name="ButtonClearBoard" Margin="10,0,10,-10" Click="ClearBoard_Click" Width="50" Height="50" Style="{StaticResource MyButtonStyle}">
-                <Button.Background>
-                    <ImageBrush ImageSource="Images/erase-512.png"/>
-                </Button.Background>
-                <Button.ToolTip>Clear board</Button.ToolTip>
-            </Button>
         </StackPanel>
-        <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseLeftButtonDown="CanvasClicked">
+        <Canvas Width="800" Height="480" Name="FlowChart" MouseRightButtonDown="SaveMousePosition" MouseLeftButtonDown="CanvasClicked" ClipToBounds="True">
             <Canvas.Background>
                 <ImageBrush ImageSource="Images/Grid-Background-to-repeat-250-px-high.jpg" TileMode="FlipX" Viewport="0, 0, 250, 246" ViewportUnits="Absolute"/>
             </Canvas.Background>

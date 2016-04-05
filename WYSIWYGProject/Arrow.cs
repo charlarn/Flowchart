@@ -40,8 +40,6 @@ namespace WYSIWYGProject
         {
             Point a = AnchorOrigin, b = AnchorTarget;
 
-            double deltaY = a.Y - b.Y;
-            double deltaX = a.X - b.X;
             double angleInRadians = angleInDegrees * Math.PI / 180;
 
             //Linjens vinkel
